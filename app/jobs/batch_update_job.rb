@@ -75,8 +75,8 @@ class BatchUpdateJob
     if visibility == Hydra::AccessControls::AccessRight::VISIBILITY_TEXT_VALUE_EMBARGO
       gf.apply_embargo(embargo_release_date, visibility_during_embargo, visibility_after_embargo)
     end
-    save_tries = 0
-
+    save_file(gf)
+    Sufia.queue.push(ContentUpdateEventJob.new(gf.id, login))
     ezid = Hydranorth::EzidService.new()
     begin
       ark_identifier = ezid.create(gf)
@@ -90,7 +90,12 @@ class BatchUpdateJob
     else
       gf.ark_created = "false"
     end
+    save_file(gf)
+    saved << gf
+  end
 
+  def save_file(gf)
+    save_tries = 0
     begin
       gf.save!
     rescue RSolr::Error::Http => error
@@ -101,9 +106,8 @@ class BatchUpdateJob
       sleep 0.01
       retry
     end #
-    Sufia.queue.push(ContentUpdateEventJob.new(gf.id, login))
-    saved << gf
   end
+    
 
   def send_user_success_message user, batch
     message = saved.count > 1 ? multiple_success(batch.id, saved) : single_success(batch.id, saved.first)

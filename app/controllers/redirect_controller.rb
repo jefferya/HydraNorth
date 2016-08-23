@@ -2,6 +2,8 @@ class RedirectController < ApplicationController
 
   def era_av
     redirect_to "https://era-av.library.ualberta.ca"
+  end
+
   def ark
     file = find_ark_id
     return render_404 ActiveRecord::RecordNotFound if file.nil?
