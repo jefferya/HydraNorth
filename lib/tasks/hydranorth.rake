@@ -261,4 +261,27 @@ namespace :hydranorth do
     end
   end    
 
+  desc 'Quickstart for getting a fresh hydranorth development install ' +
+    'up and running'
+  task :quickstart => [ :environment ] do
+    # Would love to pass these tasks as dependencies, but passing
+    # arguments to dependent tasks is difficult/impossible
+    task('migration:user_migration').
+      invoke('lib/tasks/migration/test-metadata/users.txt')
+    task('migration:era_collection_community').
+      invoke('lib/tasks/migration/test-metadata/community')
+    task('migration:era_collection_community').
+      invoke('lib/tasks/migration/test-metadata/collection')
+    task('migration:era_item').invoke
+    task('hydranorth:update_special_itemtype').invoke
+    task('hydranorth:characterize').invoke
+    task('batch:ingest_csv').
+      invoke('lib/tasks/batch/ERA_batch_ingest.csv',
+             'lib/tasks/batch/files_and_metadata/')
+    task('migration:dataverse_objects').
+      invoke('spec/fixtures/migration/test-metadata/dataverse/')
+    task('sitemap:generate').invoke
+    task('hydranorth:harvest:geonames_cities').invoke
+  end
+
 end
